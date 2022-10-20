@@ -1,57 +1,44 @@
-import { Trash } from "phosphor-react"
-import { ChangeEvent, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { FieldTodo } from "./FieldTodo";
-import { CheckboxProps } from "@radix-ui/react-checkbox"
+import { ToDoProps } from "../App";
+import { useListTodo } from "../contexts/listTodo";
 
 interface Props {
-  list: string[];
-  onDelete: (toDo: string) => void;
+  list: ToDoProps[];
+  onDelete: (idToDo: string) => void;
+  completedTodo: (idToDo: string, isChecked: boolean) => void;
+  countCompletedToDos: number;
 }
 
+export function TodoList({ list, onDelete, completedTodo, countCompletedToDos }: Props) {
 
-type chooseTodo = {
-  [key: string]: boolean
-}
-let countCompleted = 0
-export function TodoList({ list, onDelete }: Props) {
+  const { contextList } = useListTodo()
 
-  const [todoCompleted, setTodoCompleted] = useState<chooseTodo>({})
-  const [count, setCount] = useState(0)
-
-  function handleFinishTodo(toDo: string, isChecked: boolean) {
-    setTodoCompleted((prev) => ({
-      ...prev,
-      [toDo]: isChecked
-    }))
+  function handleFinishTodo(idToDo: string, isChecked: boolean) {
+    completedTodo(idToDo, isChecked)
   }
 
-  useMemo(() => {
-    countCompleted = Object.values(todoCompleted).filter(bool => bool === true).length
-    setCount(countCompleted)
-  }, [todoCompleted, list])
-
-  function handleDeleteThisTask(toDo: string) {
-    onDelete(toDo)
-    delete todoCompleted[toDo]
+  function handleDeleteThisTask(idToDo: string) {
+    onDelete(idToDo)
   }
 
   return (
     <section className="w-full">
-      <div className="flex items-center justify-between py-6">
-        <div className="flex items-center gap-2">
+      <div className="flex items-center justify-between py-6 sm:flex-col sm:gap-4">
+        <div className="flex items-center gap-2 sm:self-start">
         <strong className="text-blue">Tarefas criadas</strong>
-        <span className="bg-gray-500 px-2 py-[2px] text-gray-200 rounded-full text-sm">{list.length}</span>
+        <span className="bg-gray-500 px-2 py-[2px] text-gray-200 rounded-full text-sm">{contextList.length}</span>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 sm:self-end">
         <strong className="text-purple-light">Concluídas</strong>
-        <span className="bg-gray-500 px-2 py-[2px] text-gray-200 rounded-full text-sm">{`${count} de ${list.length}`}</span>
+        <span className="bg-gray-500 px-2 py-[2px] text-gray-200 rounded-full text-sm">{`${countCompletedToDos} de ${contextList.length}`}</span>
         </div>
       </div>
 
-      {list.length ? (
+      {contextList.length ? (
         <ul className="flex flex-col items-stretch gap-3">
-          {list.map((toDo) => (
-            <FieldTodo key={toDo} toDo={toDo} finish={todoCompleted[toDo]} handleFinishTodo={handleFinishTodo} handleDeleteThisTask={handleDeleteThisTask} />
+          {contextList.map((toDo) => (
+            <FieldTodo key={toDo.id} toDo={toDo} finish={toDo.isChecked} handleFinishTodo={handleFinishTodo} handleDeleteThisTask={handleDeleteThisTask} />
           ))}
         </ul>
       ) : (
@@ -83,10 +70,13 @@ export function TodoList({ list, onDelete }: Props) {
               />
             </defs>
           </svg>
-          <span className="text-gray-300">Você ainda não tem tarefas cadastradas</span>
-          <span className="text-gray-400">Crie tarefas e organize seus itens a fazer</span>
+          <span className="text-gray-300 text-center">Você ainda não tem tarefas cadastradas</span>
+          <span className="text-gray-400 text-center">Crie tarefas e organize seus itens a fazer</span>
         </div>
       )}
+      {countCompletedToDos !== 0 && countCompletedToDos === contextList.length ? (
+        <p className="w-full text-blue-dark text-center py-4 font-semibold">Todos os à fazeres foram concluídos.</p>
+      ): null}
     </section>
   );
 }

@@ -1,8 +1,9 @@
 import { createContext, Dispatch, ReactNode, SetStateAction, useContext, useState } from "react";
+import { ToDoProps } from "../App";
 
 interface PropsContext {
-  contextList: string[];
-  setContextList: Dispatch<SetStateAction<string[]>>
+  contextList: ToDoProps[];
+  setContextList: Dispatch<SetStateAction<ToDoProps[]>>
 }
 
 const ListTodo = createContext({} as PropsContext)
@@ -12,9 +13,8 @@ interface Props {
 }
 
 export function ListTodoProvider({ children }: Props) {
-  const [contextList, setContextList] = useState<string[]>([])
+  const [contextList, setContextList] = useState<ToDoProps[]>([])
 
-  console.log(contextList)
   return (
     <ListTodo.Provider value={{contextList, setContextList}}>
       {children}
